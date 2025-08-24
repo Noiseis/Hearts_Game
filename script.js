@@ -257,7 +257,18 @@ if (gameCanvas && gameMsg) {
     let musicPlaying = false;
     function toggleMusic() {
         if (musicPlaying) { bgMusic.pause(); } 
-        else { bgMusic.play().catch(()=>{}); }
+        else { 
+            bgMusic.volume = 0.0;
+            bgMusic.play().catch(()=>{});
+            let fadeInterval = setInterval(() => {
+            if (bgMusic.volume < 0.60) {
+              bgMusic.volume = Math.min(bgMusic.volume + 0.02, 0.60);
+            } else {
+              clearInterval(fadeInterval);
+            }
+          }, 200); // increase every 200ms
+
+        }
         musicPlaying = !musicPlaying;
     }
 
