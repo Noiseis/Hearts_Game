@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Lovely Girlfriend</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="heartsCanvas"></canvas>
+
+    <section id="welcome" class="fullscreen-panel">
+        <div class="content-wrapper">
+            <h1>Hey Beautiful ❤️</h1>
+            <p class="message">You are the reason my world is so bright. I hope this little surprise makes you smile and forget all your stress. You deserve all the love and happiness in the world. 💖</p>
+            <div class="smile">
+                <img src="https://img.icons8.com/emoji/96/000000/smiling-face-with-hearts.png" alt="Smile" class="smile-img" />
+                <p class="smile-text">Your smile is my favorite thing in the world. 😊</p>
+            </div>
+            <a href="#game-view" class="play-button">A little game for you...</a>
+        </div>
+    </section>
+
+    <section id="game-view" class="fullscreen-panel">
+        <div class="game-wrapper">
+            <h2 class="game-title">Jumping Heart Game 💗</h2>
+            <p class="game-desc">Help our heart soar! Every point unlocks a new sweet message for you.</p>
+            <div id="gameCanvasWrapper">
+                <canvas id="loveGame" width="600" height="300"></canvas>
+            </div>
+            <div id="gameMessage" class="game-message">Ready to play?</div>
+
+            <div id="gameOverModal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h3 class="modal-title">Game Over!</h3>
+                    <p id="modalMessage" class="modal-text"></p>
+                    <button id="retryButton" class="retry-button">Play Again?</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <audio id="bgMusic" src="music.mp3" loop></audio>
+    <script src="script.js"></script>
+</body>
+</html>
