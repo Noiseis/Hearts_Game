@@ -1,4 +1,9 @@
-// Floating hearts animation
+// FIX: Force page to scroll to the top on every reload
+window.onbeforeunload = function () {
+    window.scrollTo(0, 0);
+};
+
+// Floating hearts background animation
 const canvas = document.getElementById('heartsCanvas');
 const ctx = canvas.getContext('2d');
 let hearts = [];
@@ -23,7 +28,6 @@ function randomHeart() {
         rotationSpeed: (Math.random() - 0.5) * 0.01
     };
 }
-
 function drawHeart(x, y, size, alpha, rotation = 0) {
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -41,24 +45,21 @@ function drawHeart(x, y, size, alpha, rotation = 0) {
     ctx.fill();
     ctx.restore();
 }
-
 function animateHearts() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (hearts.length < 15) { // Optimized
-        hearts.push(randomHeart());
-    }
-    for (let i = 0; i < hearts.length; i++) {
-        let h = hearts[i];
+    if (hearts.length < 15) { hearts.push(randomHeart()); }
+    hearts.forEach(h => {
         h.y -= h.speed;
         h.x += Math.sin(h.swing) * 0.5;
         h.swing += h.swingSpeed;
         h.rotation += h.rotationSpeed;
         drawHeart(h.x, h.y, h.size, h.alpha, h.rotation);
-    }
+    });
     hearts = hearts.filter(h => h.y + h.size > 0);
     requestAnimationFrame(animateHearts);
 }
 animateHearts();
+
 
 // --- Jumping Heart Mini-Game ---
 const gameContainer = document.getElementById('game-view');
@@ -81,7 +82,6 @@ if (gameCanvas && gameMsg) {
         "You make every obstacle worth it!", "You're my lucky charm!", "With you, life's a fun game!", "You are my high score!"
     ];
 
-    // --- Background Elements ---
     function createBackgroundElement() {
         return {
             x: Math.random() * gameCanvas.width, y: Math.random() * gameCanvas.height,
@@ -89,11 +89,10 @@ if (gameCanvas && gameMsg) {
             speed: Math.random() * 0.4 + 0.1
         };
     }
-    for (let i = 0; i < 30; i++) { // Optimized
+    for (let i = 0; i < 30; i++) {
         backgroundElements.push(createBackgroundElement());
     }
     
-    // --- Particle Class ---
     class Particle {
         constructor(x, y, color, speed, life) {
             this.x = x; this.y = y; this.color = color;
@@ -117,7 +116,6 @@ if (gameCanvas && gameMsg) {
         }
     }
 
-    // --- Draw Functions (Optimized: No Shadows) ---
     function drawPlayerHeart(x, y, size, rotation) {
         ctx2.save();
         ctx2.translate(x, y); ctx2.rotate(rotation);
@@ -151,7 +149,6 @@ if (gameCanvas && gameMsg) {
         ctx2.fill(); ctx2.restore();
     }
 
-    // --- Game Logic ---
     function resetGame() {
         heart.y = groundY; heart.vy = 0; heart.jumping = false;
         obstacles = []; particles = []; frame = 0; score = 0; gameSpeed = 4.0;
@@ -244,15 +241,6 @@ if (gameCanvas && gameMsg) {
         frame++;
     }
     
-    function startGame() {
-        resetGame(); running = true;
-        gameMsg.textContent = compliments[0];
-        gameOverModal.classList.add('hidden');
-        gameContainer.querySelector('.game-wrapper').classList.remove('modal-active');
-        if (!musicPlaying) toggleMusic();
-        update();
-    }
-
     const bgMusic = document.getElementById('bgMusic');
     let musicPlaying = false;
     function toggleMusic() {
@@ -266,29 +254,67 @@ if (gameCanvas && gameMsg) {
             } else {
               clearInterval(fadeInterval);
             }
-          }, 200); // increase every 200ms
-
+          }, 200);
         }
         musicPlaying = !musicPlaying;
     }
 
+    function startGame() {
+        resetGame(); running = true;
+        gameMsg.textContent = compliments[0];
+        gameOverModal.classList.add('hidden');
+        gameContainer.querySelector('.game-wrapper').classList.remove('modal-active');
+        // FIX: Ensure music plays if it hasn't started yet
+        if (!musicPlaying) {
+             try {
+                bgMusic.play();
+                musicPlaying = true;
+             } catch(e) {
+                console.log("User needs to interact to play music.");
+             }
+        }
+        update();
+    }
+
+    // FIX: A much safer interaction handler for mobile and desktop
     function handleInteraction(e) {
-        e.preventDefault();
         if (!running) {
-            if (gameOverModal.classList.contains('hidden')) startGame();
+            // If the game isn't running and the modal is hidden, start the game.
+            // Don't prevent default, so scrolling still works.
+            if (gameOverModal.classList.contains('hidden')) {
+                startGame();
+            }
+            // If the modal is visible, do nothing here. The button's own listener will handle it.
         } else {
+            // Only prevent default (scrolling) WHILE the game is active.
+            e.preventDefault();
             jump();
         }
     }
     
     gameContainer.addEventListener('mousedown', handleInteraction);
+    // Use 'touchstart' with passive:true where possible, but we need preventDefault for jump
     gameContainer.addEventListener('touchstart', handleInteraction, { passive: false });
     window.addEventListener('keydown', e => { if (e.code === 'Space') handleInteraction(e); });
-    retryButton.addEventListener('click', startGame);
+    
+    // FIX: The retry button needs its own, separate event listener that doesn't get blocked.
+    retryButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Stop the event from bubbling up to the gameContainer
+        startGame();
+    });
 
+    // FIX: The play button needs its own separate listener too
     document.querySelector('.play-button').addEventListener('click', (e) => {
         e.preventDefault();
-        if (!musicPlaying) toggleMusic();
+        // Try to play music on the very first click
+        if (!musicPlaying) {
+            try {
+               bgMusic.play();
+               musicPlaying = true;
+            } catch(e) {
+               console.log("User needs to interact more to play music.");
+            }
+        }
         document.querySelector(e.currentTarget.getAttribute('href')).scrollIntoView({
             behavior: 'smooth'
         });
